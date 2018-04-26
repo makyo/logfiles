@@ -29,11 +29,11 @@ class Topic(Tag):
 class LogFile(models.Model):
 
     MEDIUM_CHOICES = (
-        ('MUCK', 'MUCK'),
-        ('IRC', 'IRC'),
-        ('AIM', 'AOL Instant Messenger'),
-        ('TGRAM', 'Telegram'),
-        ('SLACK', 'Slack'),
+        ('muck', 'MUCK'),
+        ('irc', 'IRC'),
+        ('aim', 'AOL Instant Messenger'),
+        ('tgram', 'Telegram'),
+        ('slack', 'Slack'),
     )
     PRIVACY_CHOICES = (
         ('public', 'Publicly visible'),
@@ -42,14 +42,18 @@ class LogFile(models.Model):
     )
 
     name = models.CharField(max_length=500)
-    logdate = models.DateTimeField(blank=True)
-    medium = models.CharField(max_length=5, choices=MEDIUM_CHOICES)
+    contents_hash = models.CharField(max_length=100)
+    logdate = models.DateTimeField(null=True)
+    medium = models.CharField(max_length=5, choices=MEDIUM_CHOICES, blank=True)
     location = models.ForeignKey(
         Location,
         on_delete=models.SET_NULL,
         null=True)
     complete = models.BooleanField(default=True)
-    privacy = models.CharField(max_length=7, choices=PRIVACY_CHOICES)
+    privacy = models.CharField(
+        max_length=7,
+        choices=PRIVACY_CHOICES,
+        blank=True)
 
 
 class Participant(models.Model):
@@ -78,6 +82,7 @@ class LogLine(models.Model):
     )
 
     line = models.TextField()
+    line_num = models.IntegerField()
     log_file = models.ForeignKey(LogFile, on_delete=models.CASCADE)
     participant = models.ForeignKey(
         Participant,
@@ -93,3 +98,6 @@ class LogLine(models.Model):
         default='global')
     moment = models.ManyToManyField(Moment)
     topic = models.ManyToManyField(Topic)
+
+    class Meta:
+        ordering = ['line_num']
