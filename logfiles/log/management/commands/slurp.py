@@ -2,8 +2,9 @@ import argparse
 import hashlib
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db.transaction import atomic
 
-from log import models
+from log import utils
 
 
 class Command(BaseCommand):
@@ -15,21 +16,12 @@ class Command(BaseCommand):
             nargs=1,
             type=argparse.FileType('r'))
 
+    @atomic
     def handle(self, *args, **options):
         contents = []
         for line in options['file'][0]:
             contents.append(line)
-        contents_hash = hashlib.sha256('\n'.join(contents).encode()).hexdigest()
-        if models.LogFile.objects.filter(contents_hash=contents_hash).count():
-            raise CommandError('that log appears to already be in the DB!'
-                               ' sha256 = {}'.format(contents_hash))
-        logfile = models.LogFile(
-            name=options['file'][0].name,
-            contents_hash=contents_hash)
-        logfile.save()
-        for line in enumerate(contents):
-            logline = models.LogLine(
-                line=line[1],
-                line_num=line[0] + 1,
-                log_file = logfile)
-            logline.save()
+        try:
+            utils.slurp(contents, options['file'][0].name)
+        except Exception as e:
+            raise CommandError(e)
