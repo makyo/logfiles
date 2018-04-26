@@ -135,7 +135,7 @@ class LogLine(models.Model):
     """LogLine holds a single line of a log and its metadata."""
 
     LINE_TYPE_CHOICES = (
-        ('DEF', 'Default (uncategorized)'),
+        ('_DEF', 'Default (uncategorized)'),
         ('IM', 'Instant Message'),
         ('Meta', 'Metadata/system message'),
         ('Say', 'Say/regular message'),
@@ -150,14 +150,13 @@ class LogLine(models.Model):
     line_num = models.IntegerField()
     log_file = models.ForeignKey(LogFile, on_delete=models.CASCADE)
     participant = models.ForeignKey(
-        Tag,
-        related_name="line_participants",
+        Participant,
         on_delete=models.SET_NULL,
         null=True)
     line_type = models.CharField(
         max_length=4,
         choices=LINE_TYPE_CHOICES,
-        default='DEF')
+        default='_DEF')
     line_scope = models.CharField(
         max_length=6,
         choices=LINE_SCOPE_CHOICES,

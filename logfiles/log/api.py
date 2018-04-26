@@ -31,22 +31,25 @@ def get_log(request, log_id):
     return success(log.to_object(lines=True))
 
 
-@require_http_methods(['GET'])
+@require_http_methods(['POST'])
 @login_required
-def join_lines(request):
+def join_lines(request, log_id):
     """Join multiple lines together into one."""
-    payload = json.loads(request.body.decode('utf-8'))
-    lines = [Line.objects.get(pk=line) for line in sorted(payload.lines)]
+    to_join = [int(line) for line in request.POST.getlist('lines')]
+    lines = [
+        get_object_or_404(
+            LogLine, pk=line, log_file__id=log_id)
+        for line in sorted(to_join)]
     first = lines[0]
     lines = lines[1:]
     for line in lines:
-        first.line += ' {}'.format(line.line)
+        first.line += '\n{}'.format(line.line)
         for moment in line.moments.all():
-            if moment not in first.moments:
-                first.moments.append(moment)
+            if moment not in first.moments.all():
+                first.moments.add(moment)
         for topic in line.topics.all():
             if topic not in first.topics.all():
-                first.topics.append(topic)
+                first.topics.add(topic)
         line.delete()
     first.save()
     return success(first.to_object())
@@ -56,28 +59,49 @@ def join_lines(request):
 @login_required
 def set_line_type(request, line_id):
     """Set the line type or scope."""
-    payload = json.loads(request.body.decode('utf-8'))
-    line = Line.objects.get(pk=line_id)
-    if 'type' in payload:
-        line.line_type = payload.get('type')
-    elif 'scope' in payload:
-        line.line_scope = request.GET.get('scope')
-    return success(None)
+    line = get_object_or_404(LogLine, pk=line_id)
+    if request.POST.get('type') == 'type':
+        line.line_type = request.POST.get('value')
+    elif request.POST.get('type') == 'scope':
+        line.line_scope = request.POST.get('value')
+    line.save()
+    return success(line.to_object())
 
 
 @require_http_methods(['POST'])
 @login_required
 def add_line_tag(request, line_id):
-    """Add a tag (participant, moment, topic) to a line."""
-    payload = json.loads(request.body.decode('utf-8'))
-    line = Line.objects.get(pk=line_id)
-    pass
+    """Add or remove a tag (moment, topic) to a line."""
+    line = get_object_or_404(LogLine, pk=line_id)
+    tag = get_object_or_404(Tag, pk=request.POST.get('value'))
+    if request.POST.get('type') == 'moment':
+        if tag.tag_type != 'm':
+            return error(400,
+                'Invalid tag type, expected moment, got {}'.format(
+                    tag.get_tag_type_display()))
+        line.moments.add(tag)
+    elif request.POST.get('type') == 'topic':
+        if tag.tag_type != 't':
+            return error(400, 'Invalid tag type, expected topic, got {}'.format(
+                tag.get_tag_type_display()))
+        line.topics.add(tag)
+    line.save()
+    return success(line.to_object())
 
 
 @require_http_methods(['POST'])
 @login_required
 def remove_line_tag(request, line_id):
-    """Remove a tag (participant, moment, topic) from a line."""
-    payload = json.loads(request.body.decode('utf-8'))
-    line = Line.objects.get(pk=line_id)
-    pass
+    """Add or remove a tag (moment, topic) to a line."""
+    line = get_object_or_404(LogLine, pk=line_id)
+    tag = get_object_or_404(Tag, pk=request.POST.get('value'))
+    if request.POST.get('type') == 'moment':
+        if tag not in line.moments.all():
+            return error(404, 'moment not found in line')
+        line.moments.remove(tag)
+    elif request.POST.get('type') == 'topic':
+        if tag not in line.topics.all():
+            return error(404, 'topic not found in line')
+        line.topics.remove(tag)
+    line.save()
+    return success(line.to_object())
