@@ -4,3 +4,4 @@ __pycache__
 .*.sw[po]
 *.sqlite3
 node_modules
+elm-stuff
