@@ -3,7 +3,10 @@ from django.urls import (
     path,
 )
 
-from log import api
+from log import (
+    api,
+    views,
+)
 
 
 api = [
@@ -16,5 +19,6 @@ api = [
 ]
 
 patterns = [
+    path('', views.app),
     path('api/v1/', include(api)),
 ]

@@ -3,3 +3,4 @@ __pycache__
 *.py[co]
 .*.sw[po]
 *.sqlite3
+node_modules
