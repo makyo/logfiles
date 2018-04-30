@@ -29,20 +29,20 @@ class Tag(models.Model):
         }
         if related:
             if self.tag_type == 'l':
-                obj['related'] = [
+                obj['logs'] = [
                     log.to_object() for logs in self.location_logs.all()]
             elif self.type == 'p':
-                obj['related'] = [
+                obj['participants'] = [
                     participant.to_object(alts=False) for participant in
                     self.alt_group.all()]
             elif self.type == 'm':
-                obj['related'] = [
+                obj['lines'] = [
                     line.to_object() for line in self.line_moments.all()]
             elif self.type == 't':
-                obj['related'] = [
+                obj['lines'] = [
                     line.to_object() for line in self.line_topics.all()]
             elif self.type == 'u':
-                obj['related'] = [
+                obj['logs'] = [
                     log.to_object() for logs in self.logs.all()]
         return obj
 

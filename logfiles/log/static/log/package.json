@@ -1,0 +1,25 @@
+{
+  "name": "logfiles",
+  "version": "0.0.1",
+  "description": "Front-end for the logfiles project",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/makyo/logfiles.git"
+  },
+  "author": "Madison Scott-Clary <makyo@drab-makyo.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/makyo/logfiles/issues"
+  },
+  "homepage": "https://github.com/makyo/logfiles#readme",
+  "devDependencies": {
+    "grunt": "^1.0.2",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-watch": "^1.0.1",
+    "grunt-elm": "^2.0.0"
+  }
+}
